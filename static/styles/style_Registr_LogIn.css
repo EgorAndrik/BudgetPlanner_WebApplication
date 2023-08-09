@@ -5,7 +5,7 @@ html {
 body {
 	position: relative;
 	font-family: 'Noto Sans', sans-serif;
-	font-size: 1.8vh;
+	font-size: 1vw;
 	line-height: 1.4;
 	color: #000;
 	min-width: 100%;
@@ -13,13 +13,27 @@ body {
 	overflow-x: hidden;
 	height: auto;
 }
-h2{
+h1 {
+	font-weight: 550;
+	font-size: 2vw;
+}
+h2 {
 	font-weight: 800;
-	font-size: 3.5vh;
+	font-size: 2.5vw;
 }
 h3 {
 	font-weight: 550;
-	font-size: 2.8vh;
+	font-size: 2vw;
+}
+h4 {
+    font-size: 1.4vw;
+}
+a {
+    font-size: 1.1vw;
+}
+h5 {
+    font-weight: 550;
+    font-size: 1.3vw;
 }
 
 
@@ -105,7 +119,7 @@ main {
     justify-content: center;
 }
 .form {
-    width: 25%;
+    width: 35%;
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, .6);
@@ -115,15 +129,16 @@ main {
 .form-input, .form-button {
     font-family: sans-serif;
     letter-spacing: 1px;
-    font-size: 2vh;
+    font-size: 1.5vw;
 }
 .form-title{
     text-align: center;
-    margin: 0 0 10% 0;
+    margin: 0 0 8% 0;
     font-weight: 600;
 }
 .form-input {
-    margin-bottom: 15%;
+    text-align: center;
+    margin-bottom: 10%;
     width: 100%;
     padding: 0 0 10px 0;
     border: none;
@@ -155,7 +170,6 @@ main {
 
 
 .footerbar {
-
 	background-color: #000;
 	color: white;
 	padding: 3%;

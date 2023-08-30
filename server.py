@@ -43,5 +43,10 @@ def registr():
     return [userName, password, dateBorn]
 
 
+@application.route('/userPageTest')
+def user():
+    return render_template('userPage.html', chart_data=['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'])
+
+
 if __name__ == '__main__':
     application.run(debug=True)

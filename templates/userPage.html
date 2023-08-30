@@ -12,7 +12,7 @@
 		<link rel="stylesheet" href="/static/styles/user.css">
 	</head>
 	
-	<body>
+		<body>
 		<nav class="navbar">
 			<div class="container">
 				<a href="#" class="navbar-brand">BudgetPlanner</a>
@@ -22,26 +22,32 @@
 						<li><a href="#">История заполнений</a></li>
 						<li><a href="#footerbar">Сведенья о разработчике</a></li>
 					</ul>
-					<a href="#" class="Registr_LogIn">Вход/Регистрация</a>
+					<a href="#" class="Registr_LogIn">Выход</a>
 				</div>
 			</div>
 		</nav>
 
 
 		<main>
-			
+
 			<div class="user-box">
 				<div class="user-graphs">
-					<div><canvas id="expenses"></canvas></div>
-					<div><canvas id="ratio"></canvas></div>
-					<div><canvas id="income"></canvas></div>
+					<div style="width: 38%; height: 100%;">
+						<canvas style="width: 100%; height: 100%;" id="expenses"></canvas>
+						<a href="#" class="user-box-button">Заполнить расходы</a>
+					</div>
+					<div style="width: 24%; height: 100%;"><canvas style="width: 100%; height: 100%;" id="ratio"></canvas></div>
+					<div style="width: 38%; height: 100%;">
+						<canvas style="width: 100%; height: 100%;" id="income"></canvas>
+						<a href="#" class="user-box-button">Заполнить доходы</a>
+					</div>
 				</div>
 
 				<div class="user-predictions">
 					<canvas id="predictions"></canvas>
 				</div>
 			</div>
-			
+
 		</main>
 
 

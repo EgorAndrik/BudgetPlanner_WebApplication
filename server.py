@@ -59,7 +59,20 @@ def userPage(UserName: str):
 def formPage(UserName: str, formForGraph: str):
     return render_template('expenses_income.html',
                            operationName=formForGraph,
-                           homeUserLink=f'/userPage/{UserName}')
+                           homeUserLink=f'/userPage/{UserName}',
+                           linkForData=f'/userData/{UserName}/{formForGraph}')
+
+
+@application.route('/userData/<UserName>/<formForGraph>', methods=['POST'])
+def addUserData(UserName: str, formForGraph: str):
+    with open('Users/UsersData.json', 'r') as users:
+        usersData = load(users)
+    userForm = request.form
+    usersData[UserName][-1]['expenses' if formForGraph == 'Расходы' else 'income'][0].append(userForm['dateAction'])
+    usersData[UserName][-1]['expenses' if formForGraph == 'Расходы' else 'income'][1].append(userForm['monye'])
+    with open('Users/UsersData.json', 'w') as users:
+        dump(usersData, users, ensure_ascii=False, indent='\t')
+    return formPage(UserName, formForGraph)
 
 
 if __name__ == '__main__':

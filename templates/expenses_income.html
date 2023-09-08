@@ -17,7 +17,7 @@
 			<div class="container">
 				<a href="#" class="navbar-brand">BudgetPlanner</a>
 				<div class="navbar-wrap">
-					<a href="#" class="Registr_LogIn">Перейти на главную</a>
+					<a href="{{ homeUserLink }}" class="Registr_LogIn">Перейти на главную</a>
 				</div>
 			</div>
 		</nav>
@@ -26,7 +26,8 @@
             <form action="#" class="form">
                 <h1 class="form-title">{{ operationName }}</h1>
 
-				<input class="form-input" type="number" placeholder="number" name="monye">
+				<input class="form-input" type="number" placeholder="100 rub" name="monye">
+				<input class="form-input" type="date" name="dateAction">
 
 				<button class="form-button">Сохранить</button>
             </form>

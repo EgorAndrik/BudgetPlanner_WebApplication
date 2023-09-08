@@ -21,7 +21,7 @@ def LogIn():
     userName, password = [formData[i] for i in formData]
     with open('Users/UsersData.json', 'r') as users:
         usersData = load(users)
-    return [userName, password] if userName in usersData else 'Error'
+    return userPage(userName) if userName in usersData else 'Error'
 
 
 @application.route('/RegistrationPage')
@@ -37,15 +37,29 @@ def registr():
         usersData = load(users)
     if userName in usersData:
         return 'Error'
-    usersData[userName] = [password, dateBorn]
+    usersData[userName] = [password, dateBorn, {'expenses': [[], []], 'income': [[], []]}]
     with open('Users/UsersData.json', 'w') as users:
         dump(usersData, users, ensure_ascii=False, indent='\t')
-    return [userName, password, dateBorn]
+    return userPage(userName)
 
 
-@application.route('/userPageTest')
-def user():
-    return render_template('userPage.html', chart_data=['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'])
+@application.route('/userPage/<UserName>')
+def userPage(UserName: str):
+    with open('Users/UsersData.json', 'r') as users:
+        usersData = load(users)
+    userData = usersData[UserName][-1]
+    chart_data = [userData[i] for i in userData]
+    return render_template('userPage.html',
+                           chart_data=chart_data,
+                           expensesLink=f'/userPage/{UserName}/Расходы',
+                           incomeLink=f'/userPage/{UserName}/Доходы')
+
+
+@application.route('/userPage/<UserName>/<formForGraph>')
+def formPage(UserName: str, formForGraph: str):
+    return render_template('expenses_income.html',
+                           operationName=formForGraph,
+                           homeUserLink=f'/userPage/{UserName}')
 
 
 if __name__ == '__main__':

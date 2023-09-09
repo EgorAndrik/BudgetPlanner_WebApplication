@@ -73,10 +73,10 @@
 			new Chart(expenses, {
 			  type: 'line',
 			  data: {
-				labels: {{ chart_data[0][0]|tojson }},
+				labels: {{ chart_expenses_data[1]|tojson }},
 				datasets: [{
 				  label: 'Расходы',
-				  data: {{ chart_data[0][1]|tojson }},
+				  data: {{ chart_expenses_data[0]|tojson }},
 				  borderWidth: 1
 				}]
 			  },
@@ -95,17 +95,15 @@
 			  type: 'doughnut',
 			  data: {
 					labels: [
-						'Red',
-						'Blue',
-						'Yellow'
+						'Расходы',
+						'Доходы'
 					],
 					datasets: [{
 						label: 'My First Dataset',
-						data: [300, 50, 100],
+						data: {{ chart_ratio_data|tojson }},
 						backgroundColor: [
-						'rgb(255, 99, 132)',
-						'rgb(54, 162, 235)',
-						'rgb(255, 205, 86)'
+						'rgb(247, 106, 106)',
+						'rgb(255, 132, 0)'
 						],
 						hoverOffset: 4
 					}]
@@ -116,10 +114,10 @@
 			new Chart(income, {
 				type: 'line',
 				data: {
-				labels: {{ chart_data[1][0]|tojson }},
+				labels: {{ chart_income_data[1]|tojson }},
 				datasets: [{
 					label: 'Доходы',
-					data: {{ chart_data[1][1]|tojson }},
+					data: {{ chart_income_data[0]|tojson }},
 					borderWidth: 1
 				}]
 				},

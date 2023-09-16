@@ -19,7 +19,7 @@ def LogInPage():
 def LogIn():
     formData = request.form
     userName, password = [formData[i] for i in formData]
-    with open('Users/UsersData.json', 'r') as users:
+    with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
         usersData = load(users)
     return userPage(userName) if userName in usersData else 'Error'
 
@@ -33,19 +33,26 @@ def registrPage():
 def registr():
     formData = request.form
     userName, password, dateBorn = [formData[i] for i in formData]
-    with open('Users/UsersData.json', 'r') as users:
+    with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
         usersData = load(users)
     if userName in usersData:
         return 'Error'
-    usersData[userName] = [password, dateBorn, {'expenses': {}, 'income': {}}]
-    with open('Users/UsersData.json', 'w') as users:
+    usersData[userName] = [
+        password,
+        dateBorn,
+        {
+            'expenses': {},
+            'income': {}
+        }
+    ]
+    with open('Users/UsersData.json', 'w', encoding='utf-8') as users:
         dump(usersData, users, ensure_ascii=False, indent='\t')
     return userPage(userName)
 
 
 @application.route('/userPage/<UserName>')
 def userPage(UserName: str):
-    with open('Users/UsersData.json', 'r') as users:
+    with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
         usersData = load(users)
     userData = usersData[UserName][-1]
     chart_expenses_data = [
@@ -57,25 +64,29 @@ def userPage(UserName: str):
         sorted(userData['income'])
     ]
     chart_ratio_data = [sum(chart_expenses_data[0]), sum(chart_income_data[0])]
-    return render_template('userPage.html',
-                           chart_expenses_data=chart_expenses_data,
-                           chart_income_data=chart_income_data,
-                           chart_ratio_data=chart_ratio_data,
-                           expensesLink=f'/userPage/{UserName}/Расходы',
-                           incomeLink=f'/userPage/{UserName}/Доходы')
+    return render_template(
+        'userPage.html',
+        chart_expenses_data=chart_expenses_data,
+        chart_income_data=chart_income_data,
+        chart_ratio_data=chart_ratio_data,
+        expensesLink=f'/userPage/{UserName}/Расходы',
+        incomeLink=f'/userPage/{UserName}/Доходы'
+    )
 
 
 @application.route('/userPage/<UserName>/<formForGraph>')
 def formPage(UserName: str, formForGraph: str):
-    return render_template('expenses_income.html',
-                           operationName=formForGraph,
-                           homeUserLink=f'/userPage/{UserName}',
-                           linkForData=f'/userData/{UserName}/{formForGraph}')
+    return render_template(
+        'expenses_income.html',
+        operationName=formForGraph,
+        homeUserLink=f'/userPage/{UserName}',
+        linkForData=f'/userData/{UserName}/{formForGraph}'
+    )
 
 
 @application.route('/userData/<UserName>/<formForGraph>', methods=['POST'])
 def addUserData(UserName: str, formForGraph: str):
-    with open('Users/UsersData.json', 'r') as users:
+    with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
         usersData = load(users)
     userForm = request.form
     if userForm['dateAction'] in usersData[UserName][-1]['expenses' if formForGraph == 'Расходы' else 'income']:
@@ -86,8 +97,13 @@ def addUserData(UserName: str, formForGraph: str):
         usersData[UserName][-1][
             'expenses' if formForGraph == 'Расходы' else 'income'
         ][userForm['dateAction']] = userForm['monye']
-    with open('Users/UsersData.json', 'w') as users:
-        dump(usersData, users, ensure_ascii=False, indent='\t')
+    with open('Users/UsersData.json', 'w', encoding='utf-8') as users:
+        dump(
+            usersData,
+            users,
+            ensure_ascii=False,
+            indent='\t'
+        )
     return formPage(UserName, formForGraph)
 
 

@@ -67,78 +67,22 @@
 
 
 		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<script src="/static/scrits/userScrits.js"></script>
 		<script>
 
-			const expenses = document.getElementById('expenses');
-			new Chart(expenses, {
-			  type: 'line',
-			  data: {
-				labels: {{ chart_expenses_data[1]|tojson }},
-				datasets: [{
-				  label: 'Расходы',
-				  data: {{ chart_expenses_data[0]|tojson }},
-				  borderWidth: 1
-				}]
-			  },
-			  options: {
-				scales: {
-				  y: {
-					beginAtZero: true
-				  }
-				}
-			  }
-			});
-
-
-			const ratio = document.getElementById('ratio');
-			new Chart(ratio, {
-			  type: 'doughnut',
-			  data: {
-					labels: [
-						'Расходы',
-						'Доходы'
-					],
-					datasets: [{
-						label: 'My First Dataset',
-						data: {{ chart_ratio_data|tojson }},
-						backgroundColor: [
-						'rgb(247, 106, 106)',
-						'rgb(255, 132, 0)'
-						],
-						hoverOffset: 4
-					}]
-					}})
-
-
-			const income = document.getElementById('income');
-			new Chart(income, {
-				type: 'line',
-				data: {
-				labels: {{ chart_income_data[1]|tojson }},
-				datasets: [{
-					label: 'Доходы',
-					data: {{ chart_income_data[0]|tojson }},
-					borderWidth: 1
-				}]
-				},
-				options: {
-				scales: {
-					y: {
-					beginAtZero: true
-					}
-				}
-				}
-			});
+			expensesLineChart({{ chart_expenses_data[1]|tojson }}, {{ chart_expenses_data[0]|tojson }});
+			ratioChart({{ chart_ratio_data|tojson }});
+			incomeLineChart({{ chart_income_data[1]|tojson }}, {{ chart_income_data[0]|tojson }});
 
 
 			const predictions = document.getElementById('predictions');
 			new Chart(predictions, {
 				type: 'line',
 				data: {
-				labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+				labels: [],
 				datasets: [{
-					label: 'Доходы',
-					data: [12, 19, 3, 5, 2, 3],
+					label: 'Расчёт',
+					data: [],
 					borderWidth: 1
 				}]
 				},

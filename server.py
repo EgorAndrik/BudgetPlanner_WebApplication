@@ -1,13 +1,10 @@
+import flask.wrappers
 from flask import Flask, render_template, request, send_from_directory
 from json import load, dump
+import pandas as pd
 
 
 application = Flask(__name__, template_folder='templates')
-
-
-# @application.route('/test/<filename>')
-# def testDownload(filename):
-    # return send_from_directory('Users', filename) # csv xlsx xls
 
 
 @application.route('/')
@@ -114,11 +111,52 @@ def addUserData(UserName: str, formForGraph: str) -> str:
 
 
 @application.route('/getDataUser/<UserName>')
-def getDataUser(UserName: str):
+def getDataUser(UserName: str) -> str:
     return render_template(
         'getDataUsers.html',
-        homeUserPage=f'/userPage/{UserName}'
+        homeUserPage=f'/userPage/{UserName}',
+        getDataLink=f'/getDataUser/Get/{UserName}'
     )
+
+
+@application.route('/getDataUser/Get/<UserName>', methods=['POST'])
+def testDownload(UserName: str) -> flask.wrappers.Response:
+    fileFormat, variantData = [request.form[elem] for elem in request.form]
+    filename = UserName + '.' + fileFormat
+
+
+    with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
+        userData = load(users)[UserName][-1]
+
+    if variantData == 'income_and_expenses':
+        dataColumns = {
+            'date': [],
+            'monye': [],
+            'income_or_expenses': []
+        }
+        for i in userData:
+            for date in sorted(userData[i]):
+                dataColumns['date'].append(date)
+                dataColumns['monye'].append(int(userData[i][date]))
+                dataColumns['income_or_expenses'].append(i)
+        data = pd.DataFrame(dataColumns)
+    else:
+        dataColumns = {
+            'date': [],
+            'monye': []
+        }
+        for date in sorted(userData[variantData]):
+            dataColumns['date'].append(date)
+            dataColumns['monye'].append(int(userData[variantData][date]))
+        data = pd.DataFrame(dataColumns)
+
+    if fileFormat == 'csv':
+        data.to_csv('Users/Datas/' + filename, index=False)
+    else:
+        data.to_excel('Users/Datas/' + filename, index=False)
+
+
+    return send_from_directory('Users/Datas', filename)
 
 
 if __name__ == '__main__':

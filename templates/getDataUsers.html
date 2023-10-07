@@ -29,7 +29,7 @@
 
 		<main>
 
-			<form class="form-user-data">
+			<form class="form-user-data" action="{{ getDataLink }}", method="POST">
 				<h1 class="form-title">Выгрузка данных</h1>
 
 				<select name="format">
@@ -39,9 +39,9 @@
 				</select>
 				<br>
 				<select name="income_or_expenses">
-					<option value="csv">доходы и расходы</option>
-					<option value="xlsx">доход</option>
-					<option value="xls">расход</option>
+					<option value="income_and_expenses">доходы и расходы</option>
+					<option value="income">доход</option>
+					<option value="expenses">расход</option>
 				</select>
 
 				<button class="form-button">Скачать</button>

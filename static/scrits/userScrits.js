@@ -2,6 +2,7 @@ const expenses = document.getElementById('expenses');
 const ratio = document.getElementById('ratio');
 const income = document.getElementById('income');
 
+
 function expensesLineChart(labelsData, moneyData) {
     new Chart(expenses, {
       type: 'line',
@@ -33,7 +34,7 @@ function ratioChart(proportionsOfMoney){
                 'Доходы'
             ],
             datasets: [{
-                label: 'My First Dataset',
+                label: 'Расходы/Доходы',
                 data: proportionsOfMoney,
                 backgroundColor: [
                 'rgb(247, 106, 106)',

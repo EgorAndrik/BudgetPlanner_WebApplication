@@ -1,10 +1,22 @@
 import flask.wrappers
 from flask import Flask, render_template, request, send_from_directory
+from werkzeug.utils import secure_filename
 from json import load, dump
 import pandas as pd
+import os
+
+
+UPLOAD_FOLDER = 'Users/Datas'
+ALLOWED_EXTENSIONS = {'csv', 'xlsx'}
 
 
 application = Flask(__name__, template_folder='templates')
+application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
+def allowed_file(filename: str) -> bool:
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @application.route('/')
@@ -73,7 +85,8 @@ def userPage(UserName: str) -> str:
         chart_ratio_data=chart_ratio_data,
         expensesLink=f'/userPage/{UserName}/Расходы',
         incomeLink=f'/userPage/{UserName}/Доходы',
-        getDataUser=f'/getDataUser/{UserName}'
+        getDataUser=f'/getDataUser/{UserName}',
+        setDataUser=f'/setDataUser/{UserName}'
     )
 
 
@@ -120,7 +133,7 @@ def getDataUser(UserName: str) -> str:
 
 
 @application.route('/getDataUser/Get/<UserName>', methods=['POST'])
-def testDownload(UserName: str) -> flask.wrappers.Response:
+def downloadDataUser(UserName: str) -> flask.wrappers.Response:
     fileFormat, variantData = [request.form[elem] for elem in request.form]
     filename = UserName + '.' + fileFormat
 
@@ -155,8 +168,67 @@ def testDownload(UserName: str) -> flask.wrappers.Response:
     else:
         data.to_excel('Users/Datas/' + filename, index=False)
 
+    return send_from_directory(application.config["UPLOAD_FOLDER"], filename)
 
-    return send_from_directory('Users/Datas', filename)
+
+@application.route('/setDataUser/<UserName>')
+def setDataUser(UserName: str) -> str:
+    return render_template(
+        'setDataUsers.html',
+        homeUserPage=f'/userPage/{UserName}',
+        setDataLink=f'/setDataUser/Set/{UserName}',
+        setExamles='/setDataUser/Set/examples'
+    )
+
+
+@application.route('/setDataUser/Set/examples', methods=['GET'])
+def downloadExaples_for_setDataUser():
+    return send_from_directory(application.config["UPLOAD_FOLDER"], 'examples.zip')
+
+
+@application.route('/setDataUser/Set/<UserName>', methods=['POST'])
+def uploadDataUser(UserName: str):
+    file = request.files['file']
+    variantData = request.form['income_or_expenses']
+    if not len(file.filename.split('.')[0]):
+        return 'No selected file'
+    if len(file.filename.split('.')[0]) and allowed_file(file.filename):
+        fileName = secure_filename(file.filename)
+        file.save(application.config['UPLOAD_FOLDER'] + '/' + fileName)
+
+        with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
+            userData = load(users)
+
+        data = pd.read_csv(application.config['UPLOAD_FOLDER'] + '/' + fileName) if '.csv' in fileName\
+            else pd.read_excel(application.config['UPLOAD_FOLDER'] + '/' + fileName)
+
+        if variantData == 'income_and_expenses':
+            for i in range(len(data)):
+                if data.iloc[i, 0] in userData[UserName][-1][data.iloc[i, -1]]:
+                    userData[UserName][-1][data.iloc[i, 1]][data.iloc[i, 0]] = str(
+                        int(userData[UserName][-1][data.iloc[i, 1]][data.iloc[i, 0]]) + int(data.iloc[i, 1])
+                    )
+                else:
+                    userData[UserName][-1][data.iloc[i, -1]][data.iloc[i, 0]] = str(data.iloc[i, 1])
+
+        else:
+            for i in range(len(data)):
+                if data.iloc[i, 0] in userData[UserName][-1][variantData]:
+                    userData[UserName][-1][variantData][data.iloc[i, 0]] = str(
+                        int(userData[UserName][-1][variantData][data.iloc[i, 0]]) + int(data.iloc[i, 1])
+                    )
+                else:
+                    userData[UserName][-1][variantData][data.iloc[i, 0]] = str(data.iloc[i, 1])
+
+        with open('Users/UsersData.json', 'w', encoding='utf-8') as users:
+            dump(
+                userData,
+                users,
+                ensure_ascii=False,
+                indent='\t'
+            )
+
+        return userPage(UserName)
 
 
 if __name__ == '__main__':

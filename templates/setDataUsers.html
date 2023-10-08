@@ -9,29 +9,45 @@
             integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ"
             crossorigin="anonymous">
 		<title>BudgetPlanner</title>
-		<link rel="stylesheet" href="/static/styles/style_Registr_LogIn.css">
+		<link rel="stylesheet" href="/static/styles/user.css">
 	</head>
-	
-	<body>
+
+		<body>
 		<nav class="navbar">
 			<div class="container">
 				<a href="#" class="navbar-brand">BudgetPlanner</a>
 				<div class="navbar-wrap">
-					<a href="{{ homeUserLink }}" class="Registr_LogIn">Перейти на главную</a>
+					<ul class="navbar-menu">
+						<li><a href="{{ homeUserPage }}">Главная</a></li>
+						<li><a href="#footerbar">Сведенья о разработчике</a></li>
+					</ul>
+					<a href="/" class="Registr_LogIn">Выход</a>
 				</div>
 			</div>
 		</nav>
 
+
 		<main>
-            <form action="{{ linkForData }}" method="POST" class="form">
-                <h1 class="form-title">{{ operationName }}</h1>
 
-				<input class="form-input" type="number" placeholder="100 rub" name="monyeAction">
-				<input class="form-input" type="date" name="dateAction">
+			<form class="form-user-data" action="{{ setDataLink }}" method=post enctype=multipart/form-data>
+				<h1 class="form-title">Загрузка данных</h1>
 
-				<button class="form-button">Сохранить</button>
-            </form>
+				<input type=file name=file class="form-file-button">
+				<br>
+				<select name="income_or_expenses">
+					<option value="income_and_expenses">доходы и расходы</option>
+					<option value="income">доход</option>
+					<option value="expenses">расход</option>
+				</select>
+
+				<input type=submit value=Загрузить class="form-button">
+				<br>
+				<br>
+				<a class="download-example-button" href="{{ setExamles }}" method="GET">Скачать пример таблиц</a>
+			</form>
+
 		</main>
+
 
 		<footer class="footerbar" id="footerbar">
 			<div class="footerbar-container">

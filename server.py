@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, send_from_directory
 from werkzeug.utils import secure_filename
 from json import load, dump
 import pandas as pd
-import os
+from Bank import CurrencyExchanger
 
 
 UPLOAD_FOLDER = 'Users/Datas'
@@ -12,6 +12,8 @@ ALLOWED_EXTENSIONS = {'csv', 'xlsx'}
 
 application = Flask(__name__, template_folder='templates')
 application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+bank = CurrencyExchanger(currency=['USD', 'EUR', 'CNY'])
 
 
 def allowed_file(filename: str) -> bool:
@@ -70,11 +72,11 @@ def userPage(UserName: str) -> str:
         usersData = load(users)
     userData = usersData[UserName][-1]
     chart_expenses_data = [
-        [int(userData['expenses'][i]) for i in sorted(userData['expenses'])],
+        [userData['expenses'][i][0] for i in sorted(userData['expenses'])],
         sorted(userData['expenses'])
     ]
     chart_income_data = [
-        [int(userData['income'][i]) for i in sorted(userData['income'])],
+        [userData['income'][i][0] for i in sorted(userData['income'])],
         sorted(userData['income'])
     ]
     chart_ratio_data = [sum(chart_expenses_data[0]), sum(chart_income_data[0])]
@@ -108,11 +110,12 @@ def addUserData(UserName: str, formForGraph: str) -> str:
     if userForm['dateAction'] in usersData[UserName][-1]['expenses' if formForGraph == 'Расходы' else 'income']:
         usersData[UserName][-1][
             'expenses' if formForGraph == 'Расходы' else 'income'
-        ][userForm['dateAction']] += userForm['monye']
+        ][userForm['dateAction']][0] += int(userForm['monyeAction'])
     else:
         usersData[UserName][-1][
             'expenses' if formForGraph == 'Расходы' else 'income'
-        ][userForm['dateAction']] = userForm['monye']
+        ][userForm['dateAction']] = [int(userForm['monyeAction'])] + [i for i in
+                                                                      bank.exchange(date=userForm['dateAction'])]
     with open('Users/UsersData.json', 'w', encoding='utf-8') as users:
         dump(
             usersData,
@@ -145,22 +148,34 @@ def downloadDataUser(UserName: str) -> flask.wrappers.Response:
         dataColumns = {
             'date': [],
             'monye': [],
-            'income_or_expenses': []
+            'income_or_expenses': [],
+            'USD': [],
+            'EUR': [],
+            'CNY': []
         }
         for i in userData:
             for date in sorted(userData[i]):
                 dataColumns['date'].append(date)
-                dataColumns['monye'].append(int(userData[i][date]))
+                dataColumns['monye'].append(userData[i][date][0])
                 dataColumns['income_or_expenses'].append(i)
+                dataColumns['USD'].append(userData[i][date][1])
+                dataColumns['EUR'].append(userData[i][date][2])
+                dataColumns['CNY'].append(userData[i][date][-1])
         data = pd.DataFrame(dataColumns)
     else:
         dataColumns = {
             'date': [],
-            'monye': []
+            'monye': [],
+            'USD': [],
+            'EUR': [],
+            'CNY': []
         }
         for date in sorted(userData[variantData]):
             dataColumns['date'].append(date)
-            dataColumns['monye'].append(int(userData[variantData][date]))
+            dataColumns['monye'].append(userData[variantData][date])
+            dataColumns['USD'].append(userData[variantData][date][1])
+            dataColumns['EUR'].append(userData[variantData][date][2])
+            dataColumns['CNY'].append(userData[variantData][date][-1])
         data = pd.DataFrame(dataColumns)
 
     if fileFormat == 'csv':
@@ -204,21 +219,25 @@ def uploadDataUser(UserName: str):
 
         if variantData == 'income_and_expenses':
             for i in range(len(data)):
-                if data.iloc[i, 0] in userData[UserName][-1][data.iloc[i, -1]]:
-                    userData[UserName][-1][data.iloc[i, 1]][data.iloc[i, 0]] = str(
-                        int(userData[UserName][-1][data.iloc[i, 1]][data.iloc[i, 0]]) + int(data.iloc[i, 1])
-                    )
+                if data.iloc[i, 0] in userData[UserName][-1][data.iloc[i, 2]]:
+                    userData[UserName][-1][data.iloc[i, 1]][data.iloc[i, 0]][0] = (
+                            int(userData[UserName][-1][data.iloc[i, 1]][data.iloc[i, 0]]) + int(data.iloc[i, 1]))
                 else:
-                    userData[UserName][-1][data.iloc[i, -1]][data.iloc[i, 0]] = str(data.iloc[i, 1])
+                    userData[UserName][-1][data.iloc[i, 2]][data.iloc[i, 0]] = ([int(data.iloc[i, 1])]
+                                                                                 + [i for i in
+                                                                                    bank.exchange(date=data.iloc[i, 0])
+                                                                                    ])
 
         else:
             for i in range(len(data)):
                 if data.iloc[i, 0] in userData[UserName][-1][variantData]:
-                    userData[UserName][-1][variantData][data.iloc[i, 0]] = str(
-                        int(userData[UserName][-1][variantData][data.iloc[i, 0]]) + int(data.iloc[i, 1])
-                    )
+                    userData[UserName][-1][variantData][data.iloc[i, 0]][0] = (
+                            int(userData[UserName][-1][variantData][data.iloc[i, 0]]) + int(data.iloc[i, 1]))
                 else:
-                    userData[UserName][-1][variantData][data.iloc[i, 0]] = str(data.iloc[i, 1])
+                    userData[UserName][-1][variantData][data.iloc[i, 0]] = ([int(data.iloc[i, 1])]
+                                                                            + [i for i in
+                                                                               bank.exchange(date=data.iloc[i, 0])
+                                                                               ])
 
         with open('Users/UsersData.json', 'w', encoding='utf-8') as users:
             dump(

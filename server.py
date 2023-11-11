@@ -295,8 +295,8 @@ def uploadDataUser(UserName: str):
         if variantData == 'income_and_expenses':
             for i in range(len(data)):
                 if data.iloc[i, 0] in userData[UserName][-1][data.iloc[i, 2]]:
-                    userData[UserName][-1][data.iloc[i, 1]][data.iloc[i, 0]][0] = (
-                            int(userData[UserName][-1][data.iloc[i, 1]][data.iloc[i, 0]]) + int(data.iloc[i, 1]))
+                    userData[UserName][-1][data.iloc[i, 2]][data.iloc[i, 0]][0] = (
+                            userData[UserName][-1][data.iloc[i, 2]][data.iloc[i, 0]][0] + int(data.iloc[i, 1]))
                 else:
                     userData[UserName][-1][data.iloc[i, 2]][data.iloc[i, 0]] = ([int(data.iloc[i, 1])]
                                                                                  + [i for i in
@@ -307,7 +307,7 @@ def uploadDataUser(UserName: str):
             for i in range(len(data)):
                 if data.iloc[i, 0] in userData[UserName][-1][variantData]:
                     userData[UserName][-1][variantData][data.iloc[i, 0]][0] = (
-                            int(userData[UserName][-1][variantData][data.iloc[i, 0]]) + int(data.iloc[i, 1]))
+                            userData[UserName][-1][variantData][data.iloc[i, 0]][0] + int(data.iloc[i, 1]))
                 else:
                     userData[UserName][-1][variantData][data.iloc[i, 0]] = ([int(data.iloc[i, 1])]
                                                                             + [i for i in

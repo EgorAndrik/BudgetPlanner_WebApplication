@@ -182,59 +182,6 @@ main {
 }
 
 
-.form {
-	margin: auto;
-	margin-top: 1%;
-    width: 35%;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, .6);
-    font-family: sans-serif;
-    letter-spacing: 1px;
-}
-.form-input, .form-button {
-    font-family: sans-serif;
-    letter-spacing: 1px;
-    font-size: 1.5vw;
-}
-.form-title{
-    text-align: center;
-    margin: 0 0 8% 0;
-    font-weight: 600;
-}
-.form-input {
-    text-align: center;
-    margin-bottom: 10%;
-    width: 100%;
-    padding: 0 0 10px 0;
-    border: none;
-    border-bottom: 1px solid #6d6d6d;
-    background-color: transparent;
-    outline: none;
-    transition: 0.3s;
-}
-.form-input:focus {
-    border-bottom: 1px solid coral;
-}
-.form-button {
-    margin-left: 13%;
-    width: 75%;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 100px;
-    color: white;
-    background-color: coral;
-    outline: none;
-    transition: 0.3s;
-    box-shadow: 0 5px 10px rgba(255, 127, 80, 0.7);
-	transition: all 0.4s ease-in-out;
-}
-.form-button:hover {
-	transform: scale(1.1);
-	box-shadow: 0 9px 19px rgba(255, 127, 80, 0.9);
-}
-
-
 .footerbar {
 	flex-shrink: 0;
 	width: 100%;

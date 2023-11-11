@@ -232,13 +232,11 @@ def downloadDataUser(UserName: str) -> flask.wrappers.Response:
             for date in sorted(userData[i]):
                 dataColumns['date'].append(date)
                 dataColumns['monye'].append(userData[i][date][0])
-                print(userData[i][date][0])
                 dataColumns['income_or_expenses'].append(i)
                 dataColumns['USD'].append(userData[i][date][1])
                 dataColumns['EUR'].append(userData[i][date][2])
                 dataColumns['CNY'].append(userData[i][date][-1])
         data = pd.DataFrame(dataColumns)
-        print(data)
     else:
         dataColumns = {
             'date': [],

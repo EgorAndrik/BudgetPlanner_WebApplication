@@ -1,4 +1,6 @@
 Flask==3.0.0
-pandas==2.1.2
+numpy==1.26.1
+pandas==2.1.3
 pycbrf==1.1.0
+scikit_learn==1.2.2
 Werkzeug==3.0.1

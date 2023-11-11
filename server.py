@@ -1,9 +1,13 @@
 import flask.wrappers
+import numpy as np
 from flask import Flask, render_template, request, send_from_directory
 from werkzeug.utils import secure_filename
 from json import load, dump
 import pandas as pd
 from Bank import CurrencyExchanger
+from datetime import date, timedelta
+import calendar
+from PredictMonyeModel import LinearModel
 
 
 UPLOAD_FOLDER = 'Users/Datas'
@@ -14,11 +18,72 @@ application = Flask(__name__, template_folder='templates')
 application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 bank = CurrencyExchanger(currency=['USD', 'EUR', 'CNY'])
+model = LinearModel()
 
 
 def allowed_file(filename: str) -> bool:
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def getPridiction(UserName: str):
+    with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
+        userData = load(users)[UserName][-1]
+    current_date = date.today()
+    dataColumns = {
+        'year': [],
+        'month': [],
+        'day': [],
+        'monye': [],
+        'income_or_expenses': [],
+        'USD': [],
+        'EUR': [],
+        'CNY': []
+    }
+    resData = {
+        'timeInterval': [],
+        'income': [],
+        'expenses': []
+    }
+    if any([len(userData[elem]) > 0 for elem in userData]):
+        for i in userData:
+            for elem in sorted(userData[i]):
+                year, month, day = map(int, elem.split('-'))
+                dataColumns['year'].append(year)
+                dataColumns['month'].append(month)
+                dataColumns['day'].append(day)
+                dataColumns['monye'].append(userData[i][elem][0])
+                dataColumns['income_or_expenses'].append(1 if i == 'income' else 0)
+                dataColumns['USD'].append(userData[i][elem][1])
+                dataColumns['EUR'].append(userData[i][elem][2])
+                dataColumns['CNY'].append(userData[i][elem][-1])
+        data = pd.DataFrame(dataColumns)
+        X = data.drop(columns=['monye'])
+        Y = data['monye']
+
+        pred_date_day = current_date + timedelta(days=1)
+        pred_date_week = current_date + timedelta(days=7)
+
+        month_calc = calendar.monthrange(current_date.year, current_date.month)[1]
+        pred_date_month = current_date + timedelta(days=month_calc)
+
+        for pred_date in [pred_date_day, pred_date_week, pred_date_month]:
+            X_prediction = pd.DataFrame(
+                {
+                    'year': [pred_date.year, pred_date.year],
+                    'month': [pred_date.month, pred_date.month],
+                    'day': [pred_date.day, pred_date.day],
+                    'income_or_expenses': [1, 0],
+                    'USD': [np.mean(X['USD']), np.mean(X['USD'])],
+                    'EUR': [np.mean(X['EUR']), np.mean(X['EUR'])],
+                    'CNY': [np.mean(X['CNY']), np.mean(X['CNY'])]
+                }
+            )
+            resData['timeInterval'].append(pred_date)
+            resData['income'].append(model.fit_predict(X=X, Y=Y, X_prediction=X_prediction.iloc[0:1, :]))
+            resData['expenses'].append(model.fit_predict(X=X, Y=Y, X_prediction= X_prediction.iloc[1:, :]))
+        return pd.DataFrame(resData)
+    return pd.DataFrame(resData)
 
 
 @application.route('/')
@@ -37,7 +102,13 @@ def LogIn() -> str:
     userName, password = [formData[i] for i in formData]
     with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
         usersData = load(users)
-    return userPage(userName) if userName in usersData else 'Error'
+    print(usersData)
+    if userName in usersData:
+        if usersData[userName][1] == password:
+            return userPage(userName)
+        else:
+            return 'warning password'
+    return 'warning user name'
 
 
 @application.route('/RegistrationPage')
@@ -80,6 +151,9 @@ def userPage(UserName: str) -> str:
         sorted(userData['income'])
     ]
     chart_ratio_data = [sum(chart_expenses_data[0]), sum(chart_income_data[0])]
+
+    dataPrediction = getPridiction(UserName)
+
     return render_template(
         'userPage.html',
         chart_expenses_data=chart_expenses_data,
@@ -88,7 +162,8 @@ def userPage(UserName: str) -> str:
         expensesLink=f'/userPage/{UserName}/Расходы',
         incomeLink=f'/userPage/{UserName}/Доходы',
         getDataUser=f'/getDataUser/{UserName}',
-        setDataUser=f'/setDataUser/{UserName}'
+        setDataUser=f'/setDataUser/{UserName}',
+        dataPrediction=[dataPrediction.iloc[elem, :].values for elem in range(3)] if dataPrediction.index.stop else []
     )
 
 
@@ -248,6 +323,128 @@ def uploadDataUser(UserName: str):
             )
 
         return userPage(UserName)
+
+
+# @application.route('/getPrediction/<UserName>/<time_interval>/<income_or_expenses>')
+# def getPridiction_url(UserName: str, time_interval: str, income_or_expenses: int):
+#     with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
+#         userData = load(users)[UserName][-1]
+#     current_date = date.today()
+#     if time_interval == 'day':
+#         dataColumns = {
+#             'year': [],
+#             'month': [],
+#             'day': [],
+#             'monye': [],
+#             'income_or_expenses': [],
+#             'USD': [],
+#             'EUR': [],
+#             'CNY': []
+#         }
+#         for i in userData:
+#             for elem in sorted(userData[i]):
+#                 year, month, day = map(int, elem.split('-'))
+#                 dataColumns['year'].append(year)
+#                 dataColumns['month'].append(month)
+#                 dataColumns['day'].append(day)
+#                 dataColumns['monye'].append(userData[i][elem][0])
+#                 dataColumns['income_or_expenses'].append(1 if i == 'income' else 0)
+#                 dataColumns['USD'].append(userData[i][elem][1])
+#                 dataColumns['EUR'].append(userData[i][elem][2])
+#                 dataColumns['CNY'].append(userData[i][elem][-1])
+#         data = pd.DataFrame(dataColumns)
+#         X = data.drop(columns=['monye'])
+#         Y = data['monye']
+#         pred_date = current_date + timedelta(days=1)
+#         X_prediction = pd.DataFrame(
+#             {
+#                 'year': [pred_date.year],
+#                 'month': [pred_date.month],
+#                 'day': [pred_date.day],
+#                 'income_or_expenses': [income_or_expenses],
+#                 'USD': [np.mean(X['USD'])],
+#                 'EUR': [np.mean(X['EUR'])],
+#                 'CNY': [np.mean(X['CNY'])]
+#             }
+#         )
+#         return str(model.fit_predict(X=X, Y=Y, X_prediction=X_prediction))
+#     if time_interval == 'week':
+#         dataColumns = {
+#             'year': [],
+#             'month': [],
+#             'day': [],
+#             'monye': [],
+#             'income_or_expenses': [],
+#             'USD': [],
+#             'EUR': [],
+#             'CNY': []
+#         }
+#         for i in userData:
+#             for elem in sorted(userData[i]):
+#                 year, month, day = map(int, elem.split('-'))
+#                 dataColumns['year'].append(year)
+#                 dataColumns['month'].append(month)
+#                 dataColumns['day'].append(day)
+#                 dataColumns['monye'].append(userData[i][elem][0])
+#                 dataColumns['income_or_expenses'].append(1 if i == 'income' else 0)
+#                 dataColumns['USD'].append(userData[i][elem][1])
+#                 dataColumns['EUR'].append(userData[i][elem][2])
+#                 dataColumns['CNY'].append(userData[i][elem][-1])
+#         data = pd.DataFrame(dataColumns)
+#         X = data.drop(columns=['monye'])
+#         Y = data['monye']
+#         pred_date = current_date + timedelta(days=7)
+#         X_prediction = pd.DataFrame(
+#             {
+#                 'year': [pred_date.year],
+#                 'month': [pred_date.month],
+#                 'day': [pred_date.day],
+#                 'income_or_expenses': [income_or_expenses],
+#                 'USD': [np.mean(X['USD'])],
+#                 'EUR': [np.mean(X['EUR'])],
+#                 'CNY': [np.mean(X['CNY'])]
+#             }
+#         )
+#         return str(model.fit_predict(X=X, Y=Y, X_prediction=X_prediction))
+#     if time_interval == 'month':
+#         dataColumns = {
+#             'year': [],
+#             'month': [],
+#             'day': [],
+#             'monye': [],
+#             'income_or_expenses': [],
+#             'USD': [],
+#             'EUR': [],
+#             'CNY': []
+#         }
+#         for i in userData:
+#             for elem in sorted(userData[i]):
+#                 year, month, day = map(int, elem.split('-'))
+#                 dataColumns['year'].append(year)
+#                 dataColumns['month'].append(month)
+#                 dataColumns['day'].append(day)
+#                 dataColumns['monye'].append(userData[i][elem][0])
+#                 dataColumns['income_or_expenses'].append(1 if i == 'income' else 0)
+#                 dataColumns['USD'].append(userData[i][elem][1])
+#                 dataColumns['EUR'].append(userData[i][elem][2])
+#                 dataColumns['CNY'].append(userData[i][elem][-1])
+#         data = pd.DataFrame(dataColumns)
+#         X = data.drop(columns=['monye'])
+#         Y = data['monye']
+#         month_calc = calendar.monthrange(current_date.year, current_date.month)[1]
+#         pred_date = current_date + timedelta(days=month_calc)
+#         X_prediction = pd.DataFrame(
+#             {
+#                 'year': [pred_date.year],
+#                 'month': [pred_date.month],
+#                 'day': [pred_date.day],
+#                 'income_or_expenses': [income_or_expenses],
+#                 'USD': [np.mean(X['USD'])],
+#                 'EUR': [np.mean(X['EUR'])],
+#                 'CNY': [np.mean(X['CNY'])]
+#             }
+#         )
+#         return str(model.fit_predict(X=X, Y=Y, X_prediction=X_prediction))
 
 
 if __name__ == '__main__':

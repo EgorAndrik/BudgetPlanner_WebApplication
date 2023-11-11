@@ -46,7 +46,20 @@
 				</div>
 
 				<div class="user-predictions">
-					<canvas id="predictions"></canvas>
+					<table>
+						<tr>
+							<th style="text-align: center">Промежуток времени &nbsp;</th>
+							<th>Разход &nbsp;</th>
+							<th>Доход &nbsp;</th>
+						</tr>
+						{% for timeInterval, income, expenses in dataPrediction %}
+							<tr>
+								<td style="text-align: center">{{ timeInterval }}</td>
+								<td>{{ income }} </td>
+								<td>{{ expenses }}</td>
+							</tr>
+						{% endfor %}
+					</table>
 				</div>
 			</div>
 

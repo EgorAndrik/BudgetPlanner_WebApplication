@@ -6,7 +6,7 @@ class CurrencyExchanger:
     def __init__(self, currency: list):
         self.dataCurrencyForBank = currency
 
-    def exchange(self, date: str):
+    def exchange(self, date: str) -> list:
         return [float(round(self._get_currency_rate(date, i), 2)) for i in self.dataCurrencyForBank]
 
     def _get_currency_rate(self, date: str, currency: str) -> Decimal:

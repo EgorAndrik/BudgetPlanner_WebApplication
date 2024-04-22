@@ -1,6 +1,9 @@
 import flask.wrappers
+from functools import wraps
+import os
+import time
 import numpy as np
-from flask import Flask, render_template, request, send_from_directory
+from flask import Flask, render_template, request, send_from_directory, redirect, url_for, session, render_template_string
 from werkzeug.utils import secure_filename
 from json import load, dump
 import pandas as pd
@@ -19,6 +22,24 @@ application.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 bank = CurrencyExchanger(currency=['USD', 'EUR', 'CNY'])
 model = LinearModel()
+
+
+application.secret_key = '005544'
+TIME_LIMIT = 600
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'last_activity' in session and time.time() - session['last_activity'] > TIME_LIMIT:
+            session.pop('logged_in', None)
+        if 'logged_in' not in session:
+            # Если пользователь не авторизован, возвращаем выбранную вами ссылку
+            return render_template('loginIndex.html')
+        session['last_activity'] = time.time()
+        return f(*args, **kwargs)
+
+    return decorated_function
 
 
 def allowed_file(filename: str) -> bool:
@@ -102,9 +123,10 @@ def LogIn() -> str:
     userName, password = [formData[i] for i in formData]
     with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
         usersData = load(users)
-    print(usersData)
     if userName in usersData:
         if usersData[userName][1] == password:
+            session['logged_in'] = True
+            session['last_activity'] = time.time()
             return userPage(userName)
         else:
             return 'warning password'
@@ -134,10 +156,13 @@ def registr() -> str:
     ]
     with open('Users/UsersData.json', 'w', encoding='utf-8') as users:
         dump(usersData, users, ensure_ascii=False, indent='\t')
+    session['logged_in'] = True
+    session['last_activity'] = time.time()
     return userPage(userName)
 
 
 @application.route('/userPage/<UserName>')
+@login_required
 def userPage(UserName: str) -> str:
     with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
         usersData = load(users)
@@ -168,6 +193,7 @@ def userPage(UserName: str) -> str:
 
 
 @application.route('/userPage/<UserName>/<formForGraph>')
+@login_required
 def formPage(UserName: str, formForGraph: str) -> str:
     return render_template(
         'expenses_income.html',
@@ -178,6 +204,7 @@ def formPage(UserName: str, formForGraph: str) -> str:
 
 
 @application.route('/userData/<UserName>/<formForGraph>', methods=['POST'])
+@login_required
 def addUserData(UserName: str, formForGraph: str) -> str:
     with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
         usersData = load(users)
@@ -202,6 +229,7 @@ def addUserData(UserName: str, formForGraph: str) -> str:
 
 
 @application.route('/getDataUser/<UserName>')
+@login_required
 def getDataUser(UserName: str) -> str:
     return render_template(
         'getDataUsers.html',
@@ -211,6 +239,7 @@ def getDataUser(UserName: str) -> str:
 
 
 @application.route('/getDataUser/Get/<UserName>', methods=['POST'])
+@login_required
 def downloadDataUser(UserName: str) -> flask.wrappers.Response:
     fileFormat, variantData = [request.form[elem] for elem in request.form]
     filename = UserName + '.' + fileFormat
@@ -262,6 +291,7 @@ def downloadDataUser(UserName: str) -> flask.wrappers.Response:
 
 
 @application.route('/setDataUser/<UserName>')
+@login_required
 def setDataUser(UserName: str) -> str:
     return render_template(
         'setDataUsers.html',
@@ -272,11 +302,13 @@ def setDataUser(UserName: str) -> str:
 
 
 @application.route('/setDataUser/Set/examples', methods=['GET'])
+@login_required
 def downloadExaples_for_setDataUser():
     return send_from_directory(application.config["UPLOAD_FOLDER"], 'examples.zip')
 
 
 @application.route('/setDataUser/Set/<UserName>', methods=['POST'])
+@login_required
 def uploadDataUser(UserName: str):
     file = request.files['file']
     variantData = request.form['income_or_expenses']
@@ -325,5 +357,10 @@ def uploadDataUser(UserName: str):
         return userPage(UserName)
 
 
+@application.route('/devCard')
+def devCard():
+    return render_template('devCard.html')
+
+
 if __name__ == '__main__':
-    application.run(debug=True)
+    application.run(debug=True, host='0.0.0.0', port=5000)

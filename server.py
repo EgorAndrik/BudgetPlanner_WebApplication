@@ -3,14 +3,17 @@ from functools import wraps
 import os
 import time
 import numpy as np
-from flask import Flask, render_template, request, send_from_directory, redirect, url_for, session, render_template_string
+from flask import Flask, render_template, request, send_from_directory, redirect, url_for, session, \
+    render_template_string, jsonify, Response
 from werkzeug.utils import secure_filename
 from json import load, dump
 import pandas as pd
-from Bank import CurrencyExchanger
+import logging
+from logging.handlers import RotatingFileHandler
 from datetime import date, timedelta
 import calendar
 from PredictMonyeModel import LinearModel
+from Bank import CurrencyExchanger
 
 
 UPLOAD_FOLDER = 'Users/Datas'
@@ -26,6 +29,17 @@ model = LinearModel()
 
 application.secret_key = '005544'
 TIME_LIMIT = 600
+
+
+# Настройка логирования
+handler = RotatingFileHandler('application.log', maxBytes=10000, backupCount=1)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+handler.setFormatter(formatter)
+application.logger.addHandler(handler)
+application.logger.setLevel(logging.INFO)
 
 
 def login_required(f):
@@ -118,19 +132,29 @@ def LogInPage() -> str:
 
 
 @application.route('/LogInPage/LogIn', methods=['POST'])
-def LogIn() -> str:
+def LogIn() -> Response:
     formData = request.form
-    userName, password = [formData[i] for i in formData]
+    userName = formData.get('UserName')
+    password = formData.get('Password')
+
     with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
         usersData = load(users)
+
     if userName in usersData:
         if usersData[userName][1] == password:
             session['logged_in'] = True
             session['last_activity'] = time.time()
-            return userPage(userName)
+            response = jsonify(success=True, userName=userName)
+            application.logger.info(f'Loging status: True, user name: {userName}')
+            return response
         else:
-            return 'warning password'
-    return 'warning user name'
+            response = jsonify(success=False, message='warning password')
+            application.logger.info(f'Loging status: False, user name: {userName}, Error: warning password')
+            return response
+    response = jsonify(success=False, message='warning user name')
+    application.logger.info(f'Loging status: False, user name: {userName}, Error: warning user name')
+    return response
+
 
 
 @application.route('/RegistrationPage')
@@ -139,13 +163,17 @@ def registrPage() -> str:
 
 
 @application.route('/RegistrationPage/Registration', methods=['POST'])
-def registr() -> str:
+def registr() -> Response:
     formData = request.form
-    userName, password, dateBorn = [formData[i] for i in formData]
+    userName = formData.get('UserName')
+    password = formData.get('Password')
+    dateBorn = formData.get('dateBorn')
     with open('Users/UsersData.json', 'r', encoding='utf-8') as users:
         usersData = load(users)
     if userName in usersData:
-        return 'Error'
+        response = jsonify(success=False, message='User already exists')
+        application.logger.info(f'Registration status: False, user name: {userName}, Error: User already exists')
+        return response
     usersData[userName] = [
         password,
         dateBorn,
@@ -158,7 +186,9 @@ def registr() -> str:
         dump(usersData, users, ensure_ascii=False, indent='\t')
     session['logged_in'] = True
     session['last_activity'] = time.time()
-    return userPage(userName)
+    response = jsonify(success=True, userName=userName)
+    application.logger.info(f'Registration status: True, user name: {userName}')
+    return response
 
 
 @application.route('/userPage/<UserName>')

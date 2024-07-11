@@ -23,13 +23,16 @@
 		</nav>
 
 		<main>
-            <form action="/RegistrationPage/Registration" method="POST" class="form">
-                <h1 class="form-title">Регистрация</h1>
-				<input class="form-input" type="text" placeholder="User name" name="UserName">
-                <input class="form-input" type="date" name="dateBorn">
-				<input class="form-input" type="password" placeholder="Password" name="Password">
-				<button class="form-button">Зарегистрироваться</button>
-            </form>
+            <form id="registr-form" class="form">
+				<h1 class="form-title">Регистрация</h1>
+
+				<input class="form-input" type="text" placeholder="User name" name="UserName" required>
+				<input class="form-input" type="date" name="dateBorn" required>
+				<input class="form-input" type="password" placeholder="Password" name="Password" required>
+
+				<button class="form-button" type="submit">Зарегистрироваться</button>
+				<p id="error-message" style="color: red; text-align: center;"></p>
+			</form>
 		</main>
 
 		<footer class="footerbar" id="footerbar">
@@ -47,5 +50,6 @@
 			</div>
 		</footer>
 
+	<script src="../static/scrits/registration.js"></script>
 	</body>
 </html>

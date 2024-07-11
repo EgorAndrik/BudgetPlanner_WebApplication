@@ -23,14 +23,15 @@
 		</nav>
 
 		<main>
-            <form action="/LogInPage/LogIn" method="POST" class="form">
-                <h1 class="form-title">Вход</h1>
+            <form id="login-form" class="form">
+				<h1 class="form-title">Вход</h1>
 
-				<input class="form-input" type="text" placeholder="User name" name="UserName">
-				<input class="form-input" type="password" placeholder="Password" name="Password">
+				<input class="form-input" type="text" placeholder="User name" name="UserName" required>
+				<input class="form-input" type="password" placeholder="Password" name="Password" required>
 
-				<button class="form-button">Войти</button>
-            </form>
+				<button class="form-button" type="submit">Войти</button>
+				<p id="error-message" style="color: red; text-align: center;"></p>
+			</form>
 		</main>
 
 		<footer class="footerbar" id="footerbar">
@@ -47,5 +48,6 @@
 			</div>
 		</footer>
 
+	<script src="../static/scrits/login.js"></script>
 	</body>
 </html>

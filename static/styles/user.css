@@ -332,6 +332,10 @@ select:focus {
     transform: scale(1.1);
     box-shadow: 0 9px 19px rgba(255, 127, 80, 0.9);
 }
+#error-message {
+    margin-top: 10px;
+    font-size: 1.2vw;
+}
 
 
 .footerbar {
